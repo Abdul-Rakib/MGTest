@@ -27,10 +27,13 @@ const generateAuthSignature = (payload, timestamp, path, secretKey) => {
 // API route to test MooGold API
 app.post('/test', async (req, res) => {
   try {
+    // Extract path and other parameters from the request body
+    const { path, ...otherParams } = req.body;
+
     // Define the payload
     const payload = JSON.stringify({
-      "path": "product/product_detail",
-      "product_id": 848968
+      path: path,
+      ...otherParams
     });
 
     // Generate the current UNIX Timestamp
@@ -40,15 +43,15 @@ app.post('/test', async (req, res) => {
     const basicAuth = generateBasicAuth(partnerId, secretKey);
 
     // Generate Auth Signature
-    const authSignature = generateAuthSignature(payload, timestamp, "product/product_detail", secretKey);
+    const authSignature = generateAuthSignature(payload, timestamp, path, secretKey);
+
+    // Construct the dynamic URL
+    const apiUrl = `https://moogold.com/wp-json/v1/api/${path}`;
 
     // Make the API request
-    const data = await axios.post('https://moogold.com/wp-json/v1/api/product/product_detail', {
-      "path": "product/product_detail",
-      "product_id": 848968
-    }, {
+    const data = await axios.post(apiUrl, payload, {
       headers: {
-        'Authorization': `Basic MGIxMzAxMTc1ZWU1ODA0N2UzNjQ0NmZhY2ZmOGU1N2Q6ZHc1S1FwVU1Jaw==`,
+        'Authorization': `Basic ${basicAuth}`,
         'auth': authSignature,
         'timestamp': timestamp.toString(),
         'Content-Type': 'application/json'
