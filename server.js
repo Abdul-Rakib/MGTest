@@ -101,7 +101,7 @@ app.post('/test', async (req, res) => {
     } catch (error) {
         // Handle errors
         console.error(error);
-        res.status(500).json({ error: 'Failed to fetch data from YokCash API' });
+        res.status(500).json({ error: 'Failed to fetch data from YokCash API', error });
     }
 });
 
