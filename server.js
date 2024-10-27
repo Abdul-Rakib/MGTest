@@ -80,7 +80,7 @@ app.use(express.json());
 app.use(cors());
 
 // Your API key for YokCash
-const apiKey = 'YOUR_YOKCASH_API_KEY';
+const apiKey = 'API9NTAZM1714702501999';
 
 // Function to forward requests to YokCash API
 const forwardRequestToYokCash = async (path, data) => {
