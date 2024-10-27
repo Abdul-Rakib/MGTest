@@ -90,7 +90,7 @@ app.post('/proxy-test', async (req, res) => {
             new URLSearchParams({ api_key: apiKey }), {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'Accept': 'application/json',
+                    // 'Accept': 'application/json',
                 }
             }
         );
