@@ -91,7 +91,6 @@ app.post('/proxy-test', async (req, res) => {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json',
-                    'Origin': 'https://mgtest.onrender.com' // Your deployed app's origin
                 }
             }
         );
