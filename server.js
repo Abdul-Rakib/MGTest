@@ -81,25 +81,25 @@ const PORT = process.env.PORT || 3000;
 app.use(express.urlencoded({ extended: true }));
 
 app.post('/test', async (req, res) => {
-    try {
-        const data = qs.stringify({
-            api_key: 'API9NTAZM1714702501999',
-        });
+  try {
+    const response = await axios.post('https://a-api.yokcash.com/api/service',
+      new URLSearchParams({
+        api_key: 'API9NTAZM1714702501999',
+      }), {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      }
+    });
 
-        const response = await axios.post('https://a-api.yokcash.com/api/service', data, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Accept': 'application/json'
-            }
-        });
 
-        res.json(response.data);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to fetch data from YokCash API', details: error.message });
-    }
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch data from YokCash API', details: error.message });
+  }
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
