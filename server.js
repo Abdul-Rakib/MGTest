@@ -74,25 +74,25 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const qs = require('qs'); // for URL encoding
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Your API key for YokCash
 const apiKey = 'API9NTAZM1714702501999';
 
-// Function to forward requests to YokCash API
+// Function to forward requests to YokCash API with URL-encoded data
 const forwardRequestToYokCash = async (path, data) => {
   const apiUrl = `https://a-api.yokcash.com/api/${path}`;
-  
+
   try {
-    const response = await axios.post(apiUrl, {
-      api_key: apiKey,
-      ...data
-    }, {
+    // URL encode the data including api_key
+    const urlEncodedData = qs.stringify({ api_key: apiKey, ...data });
+
+    const response = await axios.post(apiUrl, urlEncodedData, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/x-www-form-urlencoded'
       }
     });
     return response.data;
@@ -106,10 +106,10 @@ const forwardRequestToYokCash = async (path, data) => {
 app.post('/test', async (req, res) => {
   try {
     const { path, ...params } = req.body;
-    
-    // Call the function to forward the request to YokCash
+
+    // Call the function to forward the request to YokCash with URL encoding
     const result = await forwardRequestToYokCash(path, params);
-    
+
     // Return the response from YokCash back to the client
     res.json(result);
   } catch (e) {
