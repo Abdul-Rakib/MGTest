@@ -71,17 +71,6 @@
 //   console.log(`Server running on port ${PORT}`);
 // });
 
-const express = require('express');
-const axios = require('axios');
-const qs = require('qs');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware to parse URL-encoded data
-app.use(express.urlencoded({ extended: true }));
-
-// Proxy route to handle requests to the YokCash API
 app.post('/proxy-test', async (req, res) => {
     try {
         const apiKey = req.body.api_key || 'API9NTAZM1714702501999'; // Default API key
@@ -90,7 +79,8 @@ app.post('/proxy-test', async (req, res) => {
             new URLSearchParams({ api_key: apiKey }), {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Origin': 'https://mgtest.onrender.com' // Your deployed app's origin
                 }
             }
         );
@@ -100,7 +90,6 @@ app.post('/proxy-test', async (req, res) => {
     } catch (error) {
         // Handle different types of errors
         if (error.response) {
-            // The request was made and the server responded
             console.error('Response data:', error.response.data);
             console.error('Response status:', error.response.status);
             console.error('Response headers:', error.response.headers);
@@ -109,18 +98,11 @@ app.post('/proxy-test', async (req, res) => {
                 details: error.response.data,
             });
         } else if (error.request) {
-            // The request was made but no response was received
             console.error('Request data:', error.request);
             res.status(500).json({ error: 'No response received from API' });
         } else {
-            // Something happened while setting up the request
             console.error('Error message:', error.message);
             res.status(500).json({ error: 'Request setup error', details: error.message });
         }
     }
-});
-
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
 });
