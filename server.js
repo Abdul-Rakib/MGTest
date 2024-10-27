@@ -81,25 +81,42 @@ const PORT = process.env.PORT || 3000;
 app.use(express.urlencoded({ extended: true }));
 
 app.post('/test', async (req, res) => {
-  try {
-    const response = await axios.post('https://a-api.yokcash.com/api/service',
-      new URLSearchParams({
-        api_key: 'API9NTAZM1714702501999',
-      }), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
-      }
-    });
+    try {
+        const response = await axios.post('https://a-api.yokcash.com/api/service',
+            new URLSearchParams({
+                api_key: 'API9NTAZM1714702501999',
+            }), {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                }
+            }
+        );
 
-
-    res.json(response.data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch data from YokCash API', details: error.message });
-  }
+        res.json(response.data);
+    } catch (error) {
+        if (error.response) {
+            // Request made and server responded
+            console.error('Response data:', error.response.data);
+            console.error('Response status:', error.response.status);
+            console.error('Response headers:', error.response.headers);
+            res.status(error.response.status).json({
+                error: 'Failed to fetch data from YokCash API',
+                details: error.response.data,
+            });
+        } else if (error.request) {
+            // The request was made but no response was received
+            console.error('Request data:', error.request);
+            res.status(500).json({ error: 'No response received from API' });
+        } else {
+            // Something happened in setting up the request
+            console.error('Error message:', error.message);
+            res.status(500).json({ error: 'Request setup error', details: error.message });
+        }
+    }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
+
