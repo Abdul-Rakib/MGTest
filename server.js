@@ -78,14 +78,16 @@ const qs = require('qs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware to parse URL-encoded data
 app.use(express.urlencoded({ extended: true }));
 
-app.post('/test', async (req, res) => {
+// Proxy route to handle requests to the YokCash API
+app.post('/proxy-test', async (req, res) => {
     try {
+        const apiKey = req.body.api_key || 'API9NTAZM1714702501999'; // Default API key
+
         const response = await axios.post('https://a-api.yokcash.com/api/service',
-            new URLSearchParams({
-                api_key: 'API9NTAZM1714702501999',
-            }), {
+            new URLSearchParams({ api_key: apiKey }), {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json'
@@ -93,10 +95,12 @@ app.post('/test', async (req, res) => {
             }
         );
 
+        // Send the response data back to the client
         res.json(response.data);
     } catch (error) {
+        // Handle different types of errors
         if (error.response) {
-            // Request made and server responded
+            // The request was made and the server responded
             console.error('Response data:', error.response.data);
             console.error('Response status:', error.response.status);
             console.error('Response headers:', error.response.headers);
@@ -109,14 +113,14 @@ app.post('/test', async (req, res) => {
             console.error('Request data:', error.request);
             res.status(500).json({ error: 'No response received from API' });
         } else {
-            // Something happened in setting up the request
+            // Something happened while setting up the request
             console.error('Error message:', error.message);
             res.status(500).json({ error: 'Request setup error', details: error.message });
         }
     }
 });
 
+// Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
