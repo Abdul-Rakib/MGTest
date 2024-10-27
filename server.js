@@ -73,35 +73,30 @@
 
 const express = require('express');
 const axios = require('axios');
-const qs = require('qs'); // For URL-encoding
+const qs = require('qs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware to parse URL-encoded requests
 app.use(express.urlencoded({ extended: true }));
 
-// Endpoint to handle forwarding request
 app.post('/test', async (req, res) => {
     try {
-        // Prepare URL-encoded data for the YokCash API
         const data = qs.stringify({
             api_key: 'API9NTAZM1714702501999',
         });
 
-        // Forward the request to YokCash API with URL-encoded data
         const response = await axios.post('https://a-api.yokcash.com/api/service', data, {
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json'
             }
         });
 
-        // Return the response received from YokCash API
         res.json(response.data);
     } catch (error) {
-        // Handle errors
         console.error(error);
-        res.status(500).json({ error: 'Failed to fetch data from YokCash API', error });
+        res.status(500).json({ error: 'Failed to fetch data from YokCash API', details: error.message });
     }
 });
 
