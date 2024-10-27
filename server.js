@@ -1,71 +1,124 @@
+// const express = require('express');
+// const axios = require('axios');
+// const cors = require('cors');
+// const crypto = require('crypto');
+
+// const app = express();
+
+// // Middleware to parse JSON bodies
+// app.use(express.json());
+// app.use(cors());
+
+// // Partner ID and Secret Key
+// const partnerId = '0b1301175ee58047e36446facff8e57d';
+// const secretKey = 'dw5KQpUMIk';
+
+// // Function to generate Basic Auth
+// const generateBasicAuth = (partnerId, secretKey) => {
+//   return Buffer.from(`${partnerId}:${secretKey}`).toString('base64');
+// };
+
+// // Function to generate Auth Signature
+// const generateAuthSignature = (payload, timestamp, path, secretKey) => {
+//   const stringToSign = `${payload}${timestamp}${path}`;
+//   return crypto.createHmac('sha256', secretKey).update(stringToSign).digest('hex');
+// };
+
+// // API route to test MooGold API
+// app.post('/test', async (req, res) => {
+//   try {
+//     // Extract path and other parameters from the request body
+//     const { path, ...otherParams } = req.body;
+
+//     // Define the payload
+//     const payload = JSON.stringify({
+//       path: path,
+//       ...otherParams
+//     });
+
+//     // Generate the current UNIX Timestamp
+//     const timestamp = Math.floor(Date.now() / 1000);
+
+//     // Generate Basic Auth
+//     const basicAuth = generateBasicAuth(partnerId, secretKey);
+
+//     // Generate Auth Signature
+//     const authSignature = generateAuthSignature(payload, timestamp, path, secretKey);
+
+//     // Construct the dynamic URL
+//     const apiUrl = `https://moogold.com/wp-json/v1/api/${path}`;
+
+//     // Make the API request
+//     const data = await axios.post(apiUrl, payload, {
+//       headers: {
+//         'Authorization': `Basic ${basicAuth}`,
+//         'auth': authSignature,
+//         'timestamp': timestamp.toString(),
+//         'Content-Type': 'application/json'
+//       }
+//     });
+
+//     // Send the response back to the client
+//     res.json(data.data);
+//   } catch (e) {
+//     console.log(e.message);
+//     res.status(500).json({ error: e.message });
+//   }
+// });
+
+// const PORT = process.env.PORT || 3001;
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
+
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
-const crypto = require('crypto');
 
 const app = express();
-
-// Middleware to parse JSON bodies
 app.use(express.json());
 app.use(cors());
 
-// Partner ID and Secret Key
-const partnerId = '0b1301175ee58047e36446facff8e57d';
-const secretKey = 'dw5KQpUMIk';
+// Your API key for YokCash
+const apiKey = 'YOUR_YOKCASH_API_KEY';
 
-// Function to generate Basic Auth
-const generateBasicAuth = (partnerId, secretKey) => {
-  return Buffer.from(`${partnerId}:${secretKey}`).toString('base64');
-};
-
-// Function to generate Auth Signature
-const generateAuthSignature = (payload, timestamp, path, secretKey) => {
-  const stringToSign = `${payload}${timestamp}${path}`;
-  return crypto.createHmac('sha256', secretKey).update(stringToSign).digest('hex');
-};
-
-// API route to test MooGold API
-app.post('/test', async (req, res) => {
+// Function to forward requests to YokCash API
+const forwardRequestToYokCash = async (path, data) => {
+  const apiUrl = `https://a-api.yokcash.com/api/${path}`;
+  
   try {
-    // Extract path and other parameters from the request body
-    const { path, ...otherParams } = req.body;
-
-    // Define the payload
-    const payload = JSON.stringify({
-      path: path,
-      ...otherParams
-    });
-
-    // Generate the current UNIX Timestamp
-    const timestamp = Math.floor(Date.now() / 1000);
-
-    // Generate Basic Auth
-    const basicAuth = generateBasicAuth(partnerId, secretKey);
-
-    // Generate Auth Signature
-    const authSignature = generateAuthSignature(payload, timestamp, path, secretKey);
-
-    // Construct the dynamic URL
-    const apiUrl = `https://moogold.com/wp-json/v1/api/${path}`;
-
-    // Make the API request
-    const data = await axios.post(apiUrl, payload, {
+    const response = await axios.post(apiUrl, {
+      api_key: apiKey,
+      ...data
+    }, {
       headers: {
-        'Authorization': `Basic ${basicAuth}`,
-        'auth': authSignature,
-        'timestamp': timestamp.toString(),
         'Content-Type': 'application/json'
       }
     });
+    return response.data;
+  } catch (error) {
+    console.log(`Error: ${error.message}`);
+    return { error: error.message };
+  }
+};
 
-    // Send the response back to the client
-    res.json(data.data);
+// Route to test YokCash API
+app.post('/test', async (req, res) => {
+  try {
+    const { path, ...params } = req.body;
+    
+    // Call the function to forward the request to YokCash
+    const result = await forwardRequestToYokCash(path, params);
+    
+    // Return the response from YokCash back to the client
+    res.json(result);
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: e.message });
   }
 });
 
+// Port setup
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
