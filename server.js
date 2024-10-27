@@ -73,10 +73,9 @@
 
 const express = require('express');
 const axios = require('axios');
-const qs = require('qs');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 // Middleware to parse URL-encoded data
 app.use(express.urlencoded({ extended: true }));
@@ -84,13 +83,12 @@ app.use(express.urlencoded({ extended: true }));
 // Proxy route to handle requests to the YokCash API
 app.post('/proxy-test', async (req, res) => {
     try {
-        const apiKey = req.body.api_key || 'API9NTAZM1714702501999'; // Default API key
+        const apiKey = 'API9NTAZM1714702501999'; // Default API key
 
         const response = await axios.post('https://a-api.yokcash.com/api/service',
             new URLSearchParams({ api_key: apiKey }), {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    // 'Accept': 'application/json',
                 }
             }
         );
@@ -107,9 +105,6 @@ app.post('/proxy-test', async (req, res) => {
                 error: 'Failed to fetch data from YokCash API',
                 details: error.response.data,
             });
-        } else if (error.request) {
-            console.error('Request data:', error.request);
-            res.status(500).json({ error: 'No response received from API' });
         } else {
             console.error('Error message:', error.message);
             res.status(500).json({ error: 'Request setup error', details: error.message });
