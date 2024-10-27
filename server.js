@@ -71,6 +71,17 @@
 //   console.log(`Server running on port ${PORT}`);
 // });
 
+const express = require('express');
+const axios = require('axios');
+const qs = require('qs');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware to parse URL-encoded data
+app.use(express.urlencoded({ extended: true }));
+
+// Proxy route to handle requests to the YokCash API
 app.post('/proxy-test', async (req, res) => {
     try {
         const apiKey = req.body.api_key || 'API9NTAZM1714702501999'; // Default API key
@@ -105,4 +116,9 @@ app.post('/proxy-test', async (req, res) => {
             res.status(500).json({ error: 'Request setup error', details: error.message });
         }
     }
+});
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
