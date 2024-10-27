@@ -73,53 +73,38 @@
 
 const express = require('express');
 const axios = require('axios');
-const cors = require('cors');
-const qs = require('qs'); // for URL encoding
+const qs = require('qs'); // For URL-encoding
 
 const app = express();
-app.use(express.json());
-app.use(cors());
+const PORT = process.env.PORT || 3000;
 
-const apiKey = 'API9NTAZM1714702501999';
+// Middleware to parse URL-encoded requests
+app.use(express.urlencoded({ extended: true }));
 
-// Function to forward requests to YokCash API with URL-encoded data
-const forwardRequestToYokCash = async (path, data) => {
-  const apiUrl = `https://a-api.yokcash.com/api/${path}`;
-
-  try {
-    // URL encode the data including api_key
-    const urlEncodedData = qs.stringify({ api_key: apiKey, ...data });
-
-    const response = await axios.post(apiUrl, urlEncodedData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.log(`Error: ${error.message}`);
-    return { error: error.message };
-  }
-};
-
-// Route to test YokCash API
+// Endpoint to handle forwarding request
 app.post('/test', async (req, res) => {
-  try {
-    const { path, ...params } = req.body;
+    try {
+        // Prepare URL-encoded data for the YokCash API
+        const data = qs.stringify({
+            api_key: 'API9NTAZM1714702501999',
+        });
 
-    // Call the function to forward the request to YokCash with URL encoding
-    const result = await forwardRequestToYokCash(path, params);
+        // Forward the request to YokCash API with URL-encoded data
+        const response = await axios.post('https://a-api.yokcash.com/api/service', data, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
 
-    // Return the response from YokCash back to the client
-    res.json(result);
-  } catch (e) {
-    console.log(e.message);
-    res.status(500).json({ error: e.message });
-  }
+        // Return the response received from YokCash API
+        res.json(response.data);
+    } catch (error) {
+        // Handle errors
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch data from YokCash API' });
+    }
 });
 
-// Port setup
-const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
