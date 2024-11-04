@@ -143,7 +143,7 @@ app.post('/order', async (req, res) => {
             const orderId = orderResponse.data.data.id;
 
             // Delay for 1.5 seconds before checking the order status
-            await delay(1500);
+            await delay(2500);
 
             // Prepare status check parameters
             const statusParams = new URLSearchParams({
