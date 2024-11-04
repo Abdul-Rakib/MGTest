@@ -114,6 +114,8 @@ app.post('/service', async (req, res) => {
 // });
 
 
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 app.post('/order', async (req, res) => {
     const { api_key, service_id, target, kontak, idtrx } = req.body;
     const params = new URLSearchParams({
@@ -139,6 +141,9 @@ app.post('/order', async (req, res) => {
         if (orderResponse.data.status) {
             // Get the order ID from the response
             const orderId = orderResponse.data.data.id;
+
+            // Delay for 1.5 seconds before checking the order status
+            await delay(1000);
 
             // Prepare status check parameters
             const statusParams = new URLSearchParams({
