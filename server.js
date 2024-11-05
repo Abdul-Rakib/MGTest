@@ -142,30 +142,42 @@ app.post('/order', async (req, res) => {
             // Get the order ID from the response
             const orderId = orderResponse.data.data.id;
 
-            // Delay for 1.5 seconds before checking the order status
-            await delay(5000);
+            let finalStatusResponse = null;
+            let attempts = 0;
+            const maxAttempts = 10;
+            const interval = 1000; // 1 second delay between attempts
 
-            // Prepare status check parameters
-            const statusParams = new URLSearchParams({
-                api_key,
-                action: "status",
-                order_id: orderId
-            });
+            while (attempts < maxAttempts) {
+                // Prepare status check parameters
+                const statusParams = new URLSearchParams({
+                    api_key,
+                    action: "status",
+                    order_id: orderId
+                });
 
-            // Check the order status
-            const statusResponse = await axios.post('https://a-api.yokcash.com/api/status',
-                statusParams,
-                {
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                // Check the order status
+                finalStatusResponse = await axios.post('https://a-api.yokcash.com/api/status',
+                    statusParams,
+                    {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        }
                     }
+                );
+
+                // Check the status in the response
+                if (finalStatusResponse.data.status && finalStatusResponse.data.data.status === "success") {
+                    break; // Exit loop if status is "success"
                 }
-            );
+
+                attempts++;
+                await delay(interval); // Wait for the specified interval before the next attempt
+            }
 
             // Send the combined response back to the client
             res.json({
                 order: orderResponse.data,
-                status: statusResponse.data
+                status: finalStatusResponse.data // Send the last status response
             });
         } else {
             // If the order was not successful, return the order response
