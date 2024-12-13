@@ -8,6 +8,8 @@ app.use(cors());
 
 // General forwarding logic
 app.post('/order/:endpoint', async (req, res) => {
+  console.log('Forwarding payload:', JSON.stringify(req.body, null, 2));
+  console.log('Forwarding headers:', req.headers);
   try {
     const { endpoint } = req.params; // Extract the endpoint from the URL
     const url = `https://moogold.com/wp-json/v1/api/order/${endpoint}`; // Construct the full URL
