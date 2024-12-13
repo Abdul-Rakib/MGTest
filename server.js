@@ -15,25 +15,15 @@ app.post('/order/:endpoint', async (req, res) => {
     const url = `https://moogold.com/wp-json/v1/api/order/${endpoint}`; // Construct the full URL
 
     // Extract only the necessary headers
-    const { Authorization, auth, timestamp } = req.headers;
+    const { authorization, auth, timestamp } = req.headers;
 
     console.log('Received headers:', req.headers);
-    
-
-    const headersToForward = {
-      'Content-Type': 'application/json', // Ensure JSON content type
-      Authorization, // Include the Basic Auth
-      auth,          // Include the generated auth signature
-      timestamp,     // Include the timestamp
-    };
-
-    // console.log('Forwarding headers:', headersToForward);
 
     // Forward the request to the actual server with the cleaned headers
     const response = await axios.post(url, req.body, {
       headers: {
         'Content-Type': 'application/json',
-        Authorization,
+        Authorization :authorization,
         auth,
         timestamp,
       }
