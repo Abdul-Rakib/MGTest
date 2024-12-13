@@ -28,7 +28,12 @@ app.post('/order/:endpoint', async (req, res) => {
 
     // Forward the request to the actual server with the cleaned headers
     const response = await axios.post(url, req.body, {
-      headers: headersToForward,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization,
+        auth,
+        timestamp,
+      }
     });
 
     // Send back the response received from the actual server
