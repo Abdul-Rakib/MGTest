@@ -21,9 +21,13 @@ app.post('/order/:endpoint', async (req, res) => {
     });
 
     // Send back the response received from the actual server
+    console.log(response.data);
+    
     res.status(response.status).json(response.data);
   } catch (error) {
     // Handle errors
+    console.log(error);
+    
     console.error('Error forwarding request:', error.message);
     res.status(error.response?.status || 500).json({
       error: true,
