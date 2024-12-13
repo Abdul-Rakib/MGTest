@@ -17,6 +17,9 @@ app.post('/order/:endpoint', async (req, res) => {
     // Extract only the necessary headers
     const { Authorization, auth, timestamp } = req.headers;
 
+    console.log('Received headers:', req.headers);
+    
+
     const headersToForward = {
       'Content-Type': 'application/json', // Ensure JSON content type
       Authorization, // Include the Basic Auth
@@ -24,7 +27,7 @@ app.post('/order/:endpoint', async (req, res) => {
       timestamp,     // Include the timestamp
     };
 
-    console.log('Forwarding headers:', headersToForward);
+    // console.log('Forwarding headers:', headersToForward);
 
     // Forward the request to the actual server with the cleaned headers
     const response = await axios.post(url, req.body, {
