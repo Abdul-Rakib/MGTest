@@ -9,27 +9,31 @@ app.use(cors());
 // General forwarding logic
 app.post('/order/:endpoint', async (req, res) => {
   console.log('Forwarding payload:', JSON.stringify(req.body, null, 2));
-  console.log('Forwarding headers:', req.headers);
+  
   try {
     const { endpoint } = req.params; // Extract the endpoint from the URL
     const url = `https://moogold.com/wp-json/v1/api/order/${endpoint}`; // Construct the full URL
 
-    // Forward the request to the actual server
+    // Extract only the necessary headers
+    const { authorization, auth, timestamp } = req.headers;
+
+    console.log('Received headers:', req.headers);
+
+    // Forward the request to the actual server with the cleaned headers
     const response = await axios.post(url, req.body, {
       headers: {
-        ...req.headers, // Forward all headers from the client
-        host: undefined, // Remove 'host' header to avoid conflicts
-      },
+        'Content-Type': 'application/json',
+        Authorization :authorization,
+        auth,
+        timestamp,
+      }
     });
 
     // Send back the response received from the actual server
-    console.log(response.data);
-    
+    console.log('Server response:', response.data);
     res.status(response.status).json(response.data);
   } catch (error) {
     // Handle errors
-    console.log(error);
-    
     console.error('Error forwarding request:', error.message);
     res.status(error.response?.status || 500).json({
       error: true,
