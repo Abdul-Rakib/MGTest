@@ -59,10 +59,8 @@ app.post('/test', async (req, res) => {
 
 });
 
-// API route to create order
 app.post('/order/create_order', async (req, res) => {
   try {
-
     const { path, ...otherParams } = req.body;
 
     const payload = JSON.stringify({
@@ -72,10 +70,10 @@ app.post('/order/create_order', async (req, res) => {
 
     const timestamp = Math.floor(Date.now() / 1000);
     const basicAuth = generateBasicAuth(partnerId, secretKey);
-
     const authSignature = generateAuthSignature(payload, timestamp, path, secretKey);
 
-    const response = await axios.post(
+    // Step 1: Create Order
+    const createOrderResponse = await axios.post(
       `https://moogold.com/wp-json/v1/api/order/create_order`,
       payload,
       {
@@ -88,45 +86,57 @@ app.post('/order/create_order', async (req, res) => {
       }
     );
 
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({
-      error: true,
-      message: error.message,
-      details: error.response?.data || 'Internal Server Error',
-    });
-  }
-});
+    // Extract partner order ID from the create order response
+    const partnerOrderId = createOrderResponse.data.partnerOrderId;
 
-app.post('/order/order_detail_partner_id', async (req, res) => {
-  try {
+    if (!partnerOrderId) {
+      throw new Error('Partner order ID is missing in the create order response.');
+    }
 
-    const { path, ...otherParams } = req.body;
+    // Step 2: Poll Check Order Endpoint
+    let checkOrderResponse = null;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second
 
-    const payload = JSON.stringify({
-      path: path,
-      ...otherParams,
-    });
+      const checkOrderPayload = JSON.stringify({
+        path: 'order/order_detail_partner_id',
+        partner_order_id: partnerOrderId,
+      });
 
-    const timestamp = Math.floor(Date.now() / 1000);
-    const basicAuth = generateBasicAuth(partnerId, secretKey);
+      const checkOrderTimestamp = Math.floor(Date.now() / 1000);
+      const checkOrderSignature = generateAuthSignature(
+        checkOrderPayload,
+        checkOrderTimestamp,
+        'order/order_detail_partner_id',
+        secretKey
+      );
 
-    const authSignature = generateAuthSignature(payload, timestamp, path, secretKey);
+      const response = await axios.post(
+        `https://moogold.com/wp-json/v1/api/order/order_detail_partner_id`,
+        checkOrderPayload,
+        {
+          headers: {
+            Authorization: `Basic ${basicAuth}`,
+            auth: checkOrderSignature,
+            timestamp: checkOrderTimestamp.toString(),
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-    const response = await axios.post(
-      `https://moogold.com/wp-json/v1/api/order/order_detail_partner_id`,
-      payload,
-      {
-        headers: {
-          Authorization: `Basic ${basicAuth}`,
-          auth: authSignature,
-          timestamp: timestamp.toString(),
-          'Content-Type': 'application/json',
-        },
+      checkOrderResponse = response.data;
+
+      // Break the loop if order status is "completed"
+      if (checkOrderResponse.order_status === 'completed') {
+        break;
       }
-    );
+    }
 
-    res.json(response.data);
+    // Send both responses back to the client
+    res.json({
+      createOrderResponse: createOrderResponse.data,
+      checkOrderResponse,
+    });
   } catch (error) {
     res.status(500).json({
       error: true,
@@ -135,6 +145,7 @@ app.post('/order/order_detail_partner_id', async (req, res) => {
     });
   }
 });
+
 
 
 const PORT = process.env.PORT || 3001;
